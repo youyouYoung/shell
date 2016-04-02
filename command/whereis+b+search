@@ -1,0 +1,5 @@
+#用于查找目标程序所在的位置
+语法:whereis 程序名
+
+#示例
+whereis java		#查找java.sh的位置
