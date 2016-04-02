@@ -1,0 +1,9 @@
+bash shell在启动过程中会先执行启动配置文件中的脚本命令.我们可以通过编写这些启动配置文件的内容来在bash启动过程中完成一些操作.
+配置文件有:
+文件名			时机
+~/.bash_profile		登录时
+~/.bashrc		shell启动时(执行新shell时)
+~/.bash_logout		注销时
+/etc/profile		任何用户的登陆
+/etc/bash.bashrc	任何用户的shell启动时
+/etc/skel/*		在创建一个新用户时,会将该目录下的文件复制一份到用户根目录下,其中包括shell启动配置文件

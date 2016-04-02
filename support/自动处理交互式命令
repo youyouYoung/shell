@@ -1,0 +1,41 @@
+有很多命令是需要交互式执行的,比如sudo.这样非常不利于非交互式的批量处理操作.为了完成自动处理交互式命令,我们有一下几种方式:
+
+1.模拟交互式输入:
+例如在rm操作时,需要输入y/n来确认删除操作.我们可以使用echo 'y\n'来模拟交互式输入.但是存在一个问题:像rm这种命令并不是每次都会要求输入确认信息的.
+
+2.here document的方式:
+通过在调用命令的同时使用<<来将交互式命令的反馈输送给该命令.然而仍存在无法确定交互式命令的需求.
+
+3.通过expect语言来实现:
+首先要明确,expect是一种语言.在脚本中使用expect的方法:
+#文件名:demo.sh
+#!/usr/bin/expect
+spawn ssh user@10.4.20.20
+expect "yes/no"
+send "yes\n"
+expect "*password:"
+send "passwd\n"
+expect eof
+
+对expect中关键字的解释:
+spawn		指定要执行的自动化命令
+expect		需要等待的消息,即命令的交互式请求
+send		要发送的消息,回馈消息
+expect eof	表示命令交互结束
+set		赋值,设置语句
+
+一些列子
+1.自动登录ssh,文件名为test.exp
+#!/usr/bin/expect -f  
+ set ip [lindex $argv 0 ]     		//接收第一个参数,并设置IP  
+ set password [lindex $argv 1 ]   	//接收第二个参数,并设置密码  
+ set timeout 10                   	//设置超时时间  
+ spawn ssh root@$ip       		//发送ssh请滶  
+ expect {                 		//返回信息匹配  
+ "*yes/no" { send "yes\r"; exp_continue}  //第一次ssh连接会提示yes/no,继续  
+ "*password:" { send "$password\r" }   	//出现密码提示,发送密码  
+ }  
+ interact          		//交互模式,用户会停留在远程服务器上面. 
+
+调用:
+./test.exp 192.168.1.130 admin
