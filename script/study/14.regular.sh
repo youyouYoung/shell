@@ -1,0 +1,74 @@
+#!/bin/bash
+#正则表达式的学习
+#正则表达式是由正则表达式引擎来实现的，正则表达式引擎来解释正则表达式模式并匹配文本的。
+#linux中有两种正则表达式引擎：
+#1.POSIX基本正则表达式（BRE）引擎
+#2.POSIX扩展正则表达式（ERE）引擎
+#
+#BRE的匹配的方式
+#1.纯文本匹配：
+echo "this is test" | sed -n '/test/p'
+echo "this is test" | sed -n '/This/p'		#正则表达式是区分大小写的
+
+#2.特殊字符
+#正则表达式中识别的特殊字符有： .*[]^${}\+?|()
+#如果想在正则中仅仅把这些字符当做普通文本看待就需要对使用的字符转义。如果需要使用/也需要转义
+#2.1 锚字符：锁定匹配值所在位置
+#锚字符有两个： ^-定义行首位置的匹配。$-定义行尾位置的匹配
+echo "this is test" | sed -n '/^test/p'			#对行首的匹配
+echo "this is test" | sed -n '/^this/p'			#对行首的匹配
+
+echo "this is a good book" | sed -n '/book$/p'		#对行尾的匹配
+echo "this are good books" | sed -n '/book$/p'		#对行尾的匹配
+
+echo "this is a book" | sed -n '/^this is book$/p'	#组合使用，表示指定的一行数据
+echo "this is a book" | sed -n '/^this is a book$/p'	#同上
+sed '/^$/d' test.sh 		#不显示test.sh中的空白行
+
+#2.2 点字符：用来匹配任意单个字符，除换行符外。但是必须有一个。
+echo "lx" | sed -n '\l.\p'
+
+#2.3 字符组：用指定的字符匹配任意位置的单个字符。用[]表示
+echo "yes" | sed -n '\[Yy]\p'
+echo "Yes" | sed -n '\[Yy]\p'
+echo "1sa" | sed -n '\^[0-9]\p'			#仅显示以数字开头的
+echo "1sa" | sed -n '\[^0-9]\p'			#仅显示不以数字开头的，将^写在[]里面表示排除字符组
+#2.3.2 特殊字符组
+#  组				描述
+#[[:alpha:]]			匹配任意字母字符，不论大小写
+#[[:alnum:]]			匹配任意字母数字，不论大小写
+#[[:blank:]]			匹配空格或者制表符
+#[[:digit:]]			匹配数字
+#[[:lower:]]			匹配小写字母
+#[[:print:]]			匹配可打印字符
+#[[:punct:]]			匹配标点符号
+#[[:space:]]			匹配任意空白字符：空格、制表符、NL、FF、VT、CR
+#[[:upper:]]			匹配任意大写字母
+echo 'ASD' | sed -n '\[[:lower:]]\p'
+echo 'ASD' | sed -n '\[[:alnum:]]\p'
+
+#2.4 星号（*）：放在某个字符后面表示该字符可能会出现0次或多次
+echo "ik" | sed -n '\ie*k\p'
+echo "ik" | sed -n '\i[Ee]*k\p'
+echo "this is a good thing" | sed -n '\this.*thing\p'		#.代替任何字符，*表示任意字符可以重复n遍
+
+
+#ERE的匹配方式
+#sed不支持ERE的功能，但gawk支持。
+#1.问号（?）：和星号是类似的效果，不过匹配的字符要求只出现0次或者1次
+echo "bt" | gawk '/be?t/{print $0}'
+echo "beet" | gawk '/be?t/{print $0}'
+
+#2.加号（+）：和星号是类似的效果，不过匹配的字符要求出现至少1次
+echo "bt" | gawk '/be+t/{print $0}'
+
+#3.花括号（{}）：花括号允许你为可重复的正则指定一个重复次数区间
+#使用方法：{m}-准确出现m次 {m,n}-至少出现m次，至多出现n次
+echo "bet" | gawk '/be{0,10}t/{print $0}'
+
+#4.管道符号（|）：用逻辑or的方式连接多个正则的结果
+echo "hat cat dog" | gawk '/[ch]at|dog/{print $0}'
+
+#5.聚合表达式（()）：将()中的表达式视为一个整体，即一个字符
+echo "Saturday" | gawk '/Sat(urday)?/{print $0}'
+echo "cat hello" | gawk '/(c|h)at/{print $0}'		#聚合和管道的使用
