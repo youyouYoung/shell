@@ -1,0 +1,71 @@
+脚本中if判断结构的写法为:
+if 判断条件; then
+	commands
+fi
+其中,判断条件有多种写法:
+
+1.执行命令的结果.
+因为判断语句是根据判断条件的退出状态码来选择操作方式的.所以一般的命令也是一种判断条件.
+
+2.符合命令.语法:((算术式))
+如果算术式的运行结果不为0,则传回真值0.否则传回假值1.
+
+3.test判断式.
+具体使用查看test命令.
+[ -r filename -a -x filename ]	#这里的-a是&&的意思
+[ -r filename -o -x filename ]	#这里的-o是||的意思
+
+4.[[ 判断式 ]]
+判断式为真传回0,否则为1.
+
+5.command1 && command2
+如果command1执行结果为真/执行成功才会执行command2
+
+6.command1 || command2
+如果command1的执行结果为假/执行失败才会执行command2
+
+注意:
+1.[[]]比[]更加自由.在[]的只用过程中要注意特殊字符的影响(<需要转移成\<).但在[[]]中不用担心这些.而且在[[]]中可以使用正则表达式.
+2.<,>的使用时要转义,[[]]除外.
+
+#		数值比较
+#比较			描述
+#n1 -eq n2		等于
+#n1 -ge n2		大于等于
+#n1 -gt n2		大于
+#n1 -le n2		小于等于
+#n1 -lt n2		小于
+#n1 -ne n2		不等于
+#		字符串比较
+#str1 = str2		是否相同
+#str1 != str2		是否不等
+#str1 < str2		小于
+#str1 > str2		大于
+#-n str			长度是否不为0
+#-z str			长度是否为0
+#		文件比较
+#-a file		存在
+#-b file		存在并是块设备文件
+#-c file		存在并是字符文件
+#-d file		存在并是目录
+#-e file		存在
+#-f file		存在并是文件
+#-g file		存在并设立了set group id属性
+#-h file		存在并是链接文件
+#-k file		存在并设立了sticky位属性
+#-p file		存在并是管道文件
+#-r file		存在并可读
+#-s file		存在并非空
+#-t 文件描述符		文件描述符开启且链接到某个终端
+#-u file		存在且设立了set user id属性
+#-w file		存在并可写
+#-x file		存在并可执行
+#-O file		存在并属于当前用户
+#-G file		存在并和当前用户是同一组
+#-L file		存在并是符号链接文件
+#-S file		存在并是socket文件
+#-N file		存在并在上次读取后被修改过*******备份要用
+#file1 -nt file2	file1比file2新，可用于备份文件
+#file2 -ot file2	file1比file旧
+#		bash选项状态
+#-o set 选项名称	选项开启(选项开启时为真)

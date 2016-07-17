@@ -1,0 +1,50 @@
+文件描述符:
+linux将对象当做文件来处理,并用标准文件描述符来表示每个文件.
+每一个文件描述符都可以标识一个会话中打开的文件.
+每个过程中最多可以有9个文件描述符,其中前三个被bash shell指定用于特殊用途:
+#文件描述符		缩写			描述
+#0			STDIN			标准输入
+#1			STDOUT			标准输出
+#2			STDERR			标准错误
+对于一个终端来讲,标准输入STDIN就是键盘,标准输出STDOUT和标准错误STDERR就是屏幕.
+bash shell中除了这三个标准输入输出描述符以外还有6个文件描述符.分别是3-8这6个文件描述符当做输入输出重定向都可以.
+
+重定向:
+我们可以通过重定向符(<,>)来改变输入/输出和错误的定向文件.
+#重定向错误：
+ls -al baseasd 2> error
+
+#重定向错误和输出
+ls -l 10* askldf 2> error 1> output	#将错误和输出定向到不同文件
+ls -l 4.* mzxv &> alloutput		#将错误和输出定向到同一个文件中
+
+#在脚本中重定向输出
+echo this is output >&1			#临时重定向
+exec 1> output				#永久重定向
+
+#下面是对其他6个文件描述符的使用
+#1.创建输出文件描述符
+exec 3> output_3
+echo this is output. >&3
+
+#2.重定向文件描述符。我们可以使用重定向符<,>将STDOUT、STDIN等重定向到其他文件中。但是如果想要标准输入输出的话就必须借用其他的文件描述符了。
+#恢复标准输出文件描述符
+exec 3> &1
+exec 1> output
+echo this is output1.
+echo this is output3. >&3
+exec 1> &3
+echo now, this is normal output
+
+#关闭文件描述符
+exec 6<&-				#关闭作为输入重定向的文件描述符6
+
+#here document的使用:
+cat <<EOF>test
+line1
+line2
+.....
+EOF
+上述表达式可以将EOF间的所有内容定向到test文件中
+
+注意:我们可以使用set打开bash的noclobber选项,来防止在重定向输出时覆盖原文件.
