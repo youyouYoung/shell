@@ -8,3 +8,6 @@ command目录
 
 support目录
 	提供了一些shell脚本语言的知识
+
+script目录
+	提供了一些简单的shell脚本，有从书中找到的也有自己编写的

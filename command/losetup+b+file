@@ -17,6 +17,7 @@
 dd if=/dev/zero of=file.img bs=2 count=2G
 #使用losetup将磁盘文件虚拟成环回文件设备
 losetup /dev/loop1 file.img
+mkfs.ext4 file.img
 #挂载块设备
 mount /dev/loop1 /tmp
 #卸载loop设备
