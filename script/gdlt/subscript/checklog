@@ -1,0 +1,39 @@
+#!/bin/bash
+## 用来显示本地/服务器Web应用日志内容
+## 示例 checklog -p modulequality -h gd212  或者 checklog
+
+host=localhost		## 服务器
+logsuffix=_logfile	## 日志文件路径变量后缀名
+logfile=""		## 日志文件位置
+project=""		## 项目名称
+
+## 运行配置文件
+source $GDLTCONFIG
+
+## 获取主机名
+while getopts h:p: params
+do
+	case $params in
+	h)
+		host=$OPTARG
+		;;
+	p)
+		project='_'$OPTARG
+		;;
+	esac
+done
+
+## 输出日志
+if [ $host == "localhost" ]; then
+	eval logfile='$'$host$logsuffix
+	tail -f $logfile
+else
+	## 检查程序是否可执行
+	if [ -z "$project" ]; then
+	        echo "没有指定项目名称"
+	        exit 1
+	fi
+
+	eval logfile='$'$host$project$logsuffix
+	ssh $host "tail -f $logfile"
+fi

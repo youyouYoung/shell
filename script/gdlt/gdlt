@@ -1,0 +1,100 @@
+#! /bin/bash
+## 用于更新Java Web项目，同时在必要的时候启动Tomcat.
+
+# reboot=false		## 当Tomcat已启动时, 是否重启. 默认不重启
+replaceall=false	## 是否替换项目中所有易修改内容, 包括 com+jsps
+ultimatereplace=false	## 是否将旧项目剔除, 完全替换
+staticfileonly=false	## 只更新静态文件
+restartapp=false	## 是否强制重启应用
+checkmessage=false	## 查看日志
+projectname=''		## 项目名称
+host=localhost		## 服务器
+scriptpath=/home/yang/fast/script/gdlt	## 辅助脚本文件位置
+export GDLTCONFIG=/home/yang/fast/config/gdlt.config	## 配置文件路径
+
+while getopts cSsaup:h: params
+do
+	case $params in 
+	c)
+		checkmessage=true
+		;;
+	s)
+		staticfileonly=true
+		;;
+	a)
+		replaceall=true
+		checkmessage=true
+		;;
+	u)
+		ultimatereplace=true
+		checkmessage=true
+		;;
+	p)
+		projectname=$OPTARG
+		;;
+	h)
+		host=$OPTARG
+		;;
+	S)
+		restartapp=true
+		checkmessage=true
+		;;
+	\?)
+		## echo "Invalid option: -$params"
+		echo -e "用法: upgradeModulequality.sh [options] [params]"
+		echo -e "\t-c --checkmessage\t 查看日志"
+		echo -e "\t-s --staticonly\t\t 只替换项目中静态文件, 不重启tomcat"
+		echo -e "\t-S --restartapp\t\t 强制重启应用服务器"
+		echo -e "\t-a --replaceall\t\t 替换项目中所有易修改内容, 包括 com+jsps."
+		echo -e "\t-u --ultimatereplace\t 将旧项目剔除, 完全替换工作路径下的内容."
+		echo -e "\t-p --projectname project 将对工作路径下名称为project的项目进行更新."
+		echo -e "\t-h --host\t\t 目的服务器"
+		exit 0
+		;;
+	esac
+done
+
+## 检查程序是否可执行
+if [ -z "$projectname" ]; then
+	echo "没有指定项目名称"
+	exit 1
+fi
+
+projectpath=$JAVAFILEPATH/$projectname
+if [ ! -e "$projectpath" ]; then
+	echo "没有找到该项目: [$projectpath]"
+	exit 1
+fi
+
+## 打包项目到Web服务器
+updatetype=''
+if [ "$ultimatereplace" = "true" ]; then
+	updatetype="all"
+elif [ "$replaceall" = "true" ]; then
+	updatetype="large"
+elif [ "$staticfileonly" = "true" ]; then
+	updatetype="small"
+fi
+
+if [ -n "$updatetype" ]; then
+	$scriptpath/updatefile -h $host -p $projectname -t $updatetype
+	if [ $? -ne 0 ]; then
+		exit 1
+	fi
+fi
+
+## 启动Tomcat
+if [ "$restartapp" = "true" -o $ultimatereplace = "true" -o $replaceall = "true" -o -z "`$scriptpath/process -h $host -p $projectname`" ]; then
+	$scriptpath/launchapp -h $host -p $projectname
+	if [ $? -ne 0 ]; then
+		exit 1
+	fi
+fi
+
+sleep 2s
+if [ $checkmessage = "true" ]; then
+	$scriptpath/checklog -h $host -p $projectname
+	if [ $? -ne 0 ]; then
+		exit 1
+	fi
+fi

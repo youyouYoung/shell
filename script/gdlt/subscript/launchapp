@@ -1,0 +1,71 @@
+#!/bin/bash
+## 用于启动本地/服务器Tomcat
+## 示例 launchapp -h gd212 -p baseproject 或者 launchapp
+
+host=localhost		## 服务器
+tomcatsuffix=_tomcat	## tomcat路径变量后缀名
+logsuffix=_logfile	## log文件路径变量后缀名
+project=""		## 项目名称
+orignproject=""		## 原始输入名称
+
+## 运行配置文件
+source $GDLTCONFIG
+
+## 获取主机名
+while getopts h:p: params
+do
+	case $params in
+	h)
+		host=$OPTARG
+		;;
+	p)
+		project='_'$OPTARG
+		orignproject=$OPTARG
+		;;
+	esac
+done
+
+if [ $host == "localhost" ]; then
+	PIDS=`pgrep -a java | grep $TOMCAT_HOME | cut -d' ' -f 1`
+
+	## tomcat 已启动, 先关闭
+	if [ -n "$PIDS" ]; then
+        	IFS_OLD=$IFS
+                IFS=$'\n'
+
+                for pid in $PIDS
+                do
+                        echo "即将关闭进程: $pid"
+                        kill -9 $pid
+                done
+
+                IFS=$IFS_OLD
+        fi
+
+	## 启动tomcat
+	nohup $TOMCAT_HOME/bin/catalina.sh run &> $localhost_logfile &
+else
+	## 服务器启动方法
+	
+	## 检查程序是否可执行
+	if [ -z "$project" ]; then
+        	echo "没有指定项目名称"
+	        exit 1
+	elif [ -z "$host" ]; then
+		echo "没有指定服务器名称"
+		exit 1
+	fi
+
+	eval tomcatpath='$'$host$project$tomcatsuffix
+	eval logpath='$'$host$project$logsuffix
+	if [ -z "$tomcatpath" ]; then
+		echo "配置文件中没有指定项目$project在服务器$host下的tomcat位置"
+		exit 1
+	elif [ -z "$logpath" ]; then
+		echo "配置文件中没有指定项目$project在服务器$host下的日志文件位置"
+		exit 1
+	fi
+
+	## 启动tomcat
+	ssh $host "upgradeapp -p $orignproject -l $tomcatpath &> $logpath"
+fi

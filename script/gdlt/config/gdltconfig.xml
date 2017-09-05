@@ -1,0 +1,14 @@
+#! /home/yang/fast/script/gdlt/config
+## 服务器信息
+<server name="gd212" ip="192.168.0.212">
+	<webapp project="modulequality" path="/home/data/application/modulequality-tomcat-9.0.0.M17" log="/home/data/application/modulequality-tomcat-9.0.0.M17/bin/nohup.out">
+	<webapp project="baseproject" path="/home/data/application/baseproject-tomcat-9.0.0.M17" log="/home/data/application/baseproject-tomcat-9.0.0.M17/bin/nohup.out">
+</server>
+<server>qwerqwer</server>
+
+## 项目信息
+<project name="modulequality">
+	<staticfile>
+		<resource name="admin" source="$WORKSPACE_BASEPATH/eclipse/modulequality/src/main/webapp/admin" target="/admin">
+	</staticfile>
+</project>

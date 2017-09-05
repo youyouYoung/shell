@@ -1,0 +1,110 @@
+#!/bin/bash
+## 用于检查本地/服务器上的tomcat是否已经启动
+## 示例 
+
+host=localhost		## 服务器
+tomcatsuffix=_tomcat	## tomcat路径变量后缀名
+project=""		## 项目名称
+orignproject=""		## 输入的项目名称
+staticprefix="static"	## 不需要重启应用的文件名变量前缀
+dynamicprefix="dynamic"	## 需要重启应用的文件名变量前缀
+resourcesuffix="_resource"	## 待更新文件的变量
+updatetype=small	## 更新方式, small只更新静态文件, large更新动/静态文件, all更新所有文件且仅限于host==localhost时
+
+## 运行配置文件
+source $GDLTCONFIG
+
+## 获取主机名
+while getopts h:p:t: params
+do
+	case $params in
+	h)
+		host=$OPTARG
+		;;
+	p)
+		orignproject=$OPTARG
+		project='_'$orignproject
+		;;
+	t)
+		updatetype=$OPTARG
+		;;
+	esac
+done
+
+if [ -z "$project" ]; then
+	echo 没有指定项目名称
+	exit 1
+fi
+
+eval static_base_resourcepath='$'$staticprefix$resourcesuffix$project	##待更新静态文件基路径
+eval static_foldername='$'$staticprefix$project		## 待更新静态文件相对于基路径的文件名
+eval dynamic_resourcepath='$'$dynamicprefix$resourcesuffix$project	##待更新动态文件绝对路径
+eval dynamic_foldername='$'$dynamicprefix$project		## 待更新动态文件相对于web应用根目录的文件名
+
+if [ -z "$static_base_resourcepath" -o -z "$dynamic_resourcepath" ]; then
+	echo 没有在配置文件中找到项目$project在本地的待更新资源路径
+	exit 1
+fi
+
+tomcatpath=""	## tomcat绝对路径
+copycommand_prefix=""	## copy命令的前缀
+copycommand_suffix=""	## copy命令的后缀
+removecommand_prefix=""	## remove命令的前缀
+removecommand_suffix=""	## remove命令的后缀
+
+if [ $host == "localhost" ]; then 
+	eval tomcatpath='$'$host$tomcatsuffix
+	copycommand_prefix="cp -r"
+	removecommand_prefix="rm -rf"
+else
+	eval tomcatpath='$'$host$project$tomcatsuffix
+	copycommand_prefix="scp -r"
+	copycommand_suffix="$host:"
+	removecommand_prefix="ssh $host ' rm -rf"
+	removecommand_suffix="'"
+fi
+
+if [ -z "$tomcatpath" ]; then
+	echo 没有在配置文件中找到$host服务器中$project项目对应的tomcat地址
+	exit 1
+fi
+
+if [ $updatetype == "large" ]; then
+	## 更新动态文件
+	IFS_OLD=$IFS
+        IFS=':'
+        for line in $dynamic_resourcepath
+        do
+		IFS=$IFS_OLD
+		## echo $removecommand_prefix' '$tomcatpath'/webapps/'$orignproject'/'$dynamic_foldername' '$removecommand_suffix
+		eval $removecommand_prefix' '$tomcatpath'/webapps/'$orignproject'/'$dynamic_foldername' '$removecommand_suffix &> /dev/null
+		## echo $copycommand_prefix' '$line' '$copycommand_suffix$tomcatpath'/webapps/'$orignproject'/'$dynamic_foldername
+		eval $copycommand_prefix' '$line' '$copycommand_suffix$tomcatpath'/webapps/'$orignproject'/'$dynamic_foldername &> /dev/null
+	done
+	
+	notify-send class文件更新完成
+fi
+
+if [ $updatetype != "all" ]; then
+	## 更新静态文件
+	IFS_OLD=$IFS
+	IFS=':'
+	for line in $static_foldername
+	do
+		IFS=$IFS_OLD
+		## echo $removecommand_prefix' '$tomcatpath'/webapps/'$orignproject'/'$line' '$removecommand_suffix
+		eval $removecommand_prefix' '$tomcatpath'/webapps/'$orignproject'/'$line' '$removecommand_suffix
+		## echo $copycommand_prefix' '$static_base_resourcepath'/'$line' '$copycommand_suffix$tomcatpath'/webapps/'$orignproject'/'$line
+		eval $copycommand_prefix' '$static_base_resourcepath'/'$line' '$copycommand_suffix$tomcatpath'/webapps/'$orignproject'/'$line &> /dev/null
+	done
+
+	notify-send 非class文件更新完成
+fi
+
+if [ $updatetype == "all" -a $host == "localhost" ]; then
+	ant -buildfile $JAVAFILEPATH/$orignproject/build.xml full
+	if [ $? -ne 0 ]; then
+		echo ant没有执行成功
+		exit 1
+	fi
+fi
