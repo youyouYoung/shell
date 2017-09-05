@@ -3,10 +3,6 @@
 
 #常用选项
 -s shell名		#为用户设置指定的shell
--l			#列出目前系统可用的shell
--u			#命令帮助信息
--v			#版本信息
 
 #示例
 chsh -s bash		#将当前用户的shell改为bash
-chsh -l
