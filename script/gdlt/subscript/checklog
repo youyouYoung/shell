@@ -26,6 +26,9 @@ done
 ## 输出日志
 if [ $host == "localhost" ]; then
 	eval logfile='$'$host$logsuffix
+	if [ ! -f $logfile ]; then 
+		sleep 2s 
+	fi
 	tail -f $logfile
 else
 	## 检查程序是否可执行
