@@ -1,7 +1,6 @@
 #! /bin/bash
 ## 用于更新Java Web项目，同时在必要的时候启动Tomcat.
 
-# reboot=false		## 当Tomcat已启动时, 是否重启. 默认不重启
 replaceall=false	## 是否替换项目中所有易修改内容, 包括 com+jsps
 ultimatereplace=false	## 是否将旧项目剔除, 完全替换
 staticfileonly=false	## 只更新静态文件
@@ -9,6 +8,7 @@ restartapp=false	## 是否强制重启应用
 checkmessage=false	## 查看日志
 projectname=''		## 项目名称
 host=localhost		## 服务器
+localredisport="6379"	## 本地开启的redis端口号, 按照大小排序即可
 scriptpath=/home/yang/fast/script/gdlt	## 辅助脚本文件位置
 export GDLTCONFIG=/home/yang/fast/config/gdlt.config	## 配置文件路径
 
@@ -77,21 +77,29 @@ elif [ "$staticfileonly" = "true" ]; then
 fi
 
 if [ -n "$updatetype" ]; then
+	echo "开始更新项目"
 	$scriptpath/updatefile -h $host -p $projectname -t $updatetype
 	if [ $? -ne 0 ]; then
+		echo "文件更新失败!"
 		exit 1
 	fi
 fi
 
 ## 启动Tomcat
+if [ "$host" = "localhost" -a "`pgrep -a redis-server | awk '{print $3}' | cut -d: -f 2 | sort | tr -d '\n'`" != "$localredisport" ]; then
+	## 如果是对本地项目进行操作, 且本地没有通过三个端口启动redis, 调用启动redis命令
+	echo "启动本地redis"
+	$scriptpath/localredis
+fi
+
 if [ "$restartapp" = "true" -o $ultimatereplace = "true" -o $replaceall = "true" -o -z "`$scriptpath/process -h $host -p $projectname`" ]; then
+	echo "启动web服务器"
 	$scriptpath/launchapp -h $host -p $projectname
 	if [ $? -ne 0 ]; then
 		exit 1
 	fi
 fi
 
-sleep 2s
 if [ $checkmessage = "true" ]; then
 	$scriptpath/checklog -h $host -p $projectname
 	if [ $? -ne 0 ]; then

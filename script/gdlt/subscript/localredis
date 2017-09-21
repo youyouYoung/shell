@@ -1,0 +1,23 @@
+#!/bin/bash
+# 用于启动本地redis
+# 示例 localredis
+
+if [ -z "$REDIS_HOME" ]; then
+	echo 没有找到本地redis位置.
+	exit 1
+fi
+
+IFS_OLD=$IFS
+IFS=$'\n'
+for line in `pgrep -a 'redis-server'`
+do
+	pid=`echo $line | cut -d' ' -f 1`
+	echo "关闭redis进程$pid"
+	kill -9 $pid
+done
+IFS=$IFS_OLD
+
+cd $REDIS_HOME
+src/redis-server redis.conf &
+# src/redis-server redis_6380.conf &
+# src/redis-server redis_6381.conf &
