@@ -129,3 +129,6 @@ awk '{print $1}' FS=: /etc/passwd FS=' ' mail-list ##mail-list是以空格作为
 
 # 当然也可以用来控制读文件
 awk 'pass==1 {print $0} pass==2 {print $0}' pass=2 file1 pass=1 file2
+
+#使用单独的一个减号'-'代表标准输入
+ls -l |awk 'pass==1 {print $1} pass==2&&$5>100 {print $0}' pass=1 FS=: /etc/passwd pass=2 FS=' ' -  ##表示以:为分隔符输出第一个文件中第一个字段, 以空格作为分隔符输出标准输入中第五个字段大于100的行
