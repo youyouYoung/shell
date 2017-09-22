@@ -110,3 +110,16 @@ ls -l |awk 'BEGIN {size=0;} {size=size+$5;} END{print "[end]size is ", size}'
 
 #awk中数组的使用
 awk -F ':' 'BEGIN {count=0;} {name[count] = $1;count++;}; END{for (i = 0; i < NR; i++) print i, name[i]}' /etc/passwd
+
+#如果不指定操作方式, 默认是将匹配行全部显示出来
+ls -l | awk '$2>1'	## 查询当前路径下所有有一个以上拷贝的文件
+
+#引用脚本文件
+awk -f program.awk file1 file2 ## 通过脚本program.awk中的内容逐行处理file1和file2
+
+#可以在awk命令的最后面放搜索文件的位置设置变量, 不过在这些变量不能被BEGIN中的代码使用(低版本的awk中当变量的定义在所有的文件名称之前时, 会被BEGIN调用)
+awk -F: '$7==var' var=/bin/bash /etc/passwd  ## 查找所有使用bash作为默认shell的行
+
+#因为awk把待处理文件位置的所有内容都默认为文件, 虽然有可能是我们定义的变量. 
+#所以由于awk的执行过程是顺序执行每个文件, 所以如果在这个位置定义的变量之前有需要处理的文件的话, 那么在处理这个文件的时候, 我们不能使用后面的变量的值
+awk -F: '$7==varbash {print $1}; $7==varfalse {print $0}' varbash=/bin/bash /etc/passwd varfalse=/bin/false /etc/passwd
