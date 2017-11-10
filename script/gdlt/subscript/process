@@ -2,42 +2,50 @@
 ## 用于检查本地/服务器上的tomcat是否已经启动
 ## 示例 process -h gd212 -p modulequality 或者 process
 
-host=localhost		## 服务器
-tomcatsuffix=_tomcat	## tomcat路径变量后缀名
-project=""		## 项目名称
-
-## 运行配置文件
-source $GDLTCONFIG
+target_host=localhost		## 服务器
+target_project=""		## 项目名称
 
 ## 获取主机名
 while getopts h:p: params
 do
 	case $params in
 	h)
-		host=$OPTARG
+		target_host=$OPTARG
 		;;
 	p)
-		project='_'$OPTARG
+		target_project=$OPTARG
 		;;
 	esac
 done
 
-process=""
-if [ $host == "localhost" ]; then
-	process=`pgrep -a java | grep $TOMCAT_HOME`
-else
-	if [ -z $project ]; then
-		echo 没有指定项目名称
-		exit 1
-	fi
-
-	eval tomcatpath='$'$host$project$tomcatsuffix
-	if [ -z "$tomcatpath" ]; then
-		echo 没有在配置文件中找到项目$project在服务器$host下的tomcat地址
-		exit 1
-	fi
-
-	process=`ssh $host "pgrep -a java | grep $tomcatpath"`
+if [ -z "$target_host" ]; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**launchapp**] 没有指定目标服务器.")}'
+	exit 1
 fi
 
+if [ -z "$target_project" ]; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**launchapp**] 没有指定目标项目名称.")}'
+	exit 1
+fi
+
+## 读取配置文件中服务器信息. 如果配置文件中存在任何错误, 则在这一步就会报错
+cd $SUBSCRIPT_PATH/awk ## 进入awk程序根目录
+serverInfo=`gawk -f server.awk -v server=$target_host -v project=$target_project $GDLTCONFIG`
+
+if [ $? -ne 0 ]; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**launchapp**] 读取配置文件服务器信息时出错, 错误信息请查看[**server.awk**]日志信息.")}'
+	exit 1
+fi
+
+for line in `echo $serverInfo`
+do
+	eval $line
+done
+
+
+if [ $target_host == "localhost" ]; then
+	process=`ps -ef | grep $_server_path | awk '$8 !~ /^grep/ {print $2}'`
+else
+	process=`ssh $target_host "ps -ef | grep $_server_path | awk '\\$8 !~ /^grep/ {print \\$2}'"`
+fi
 echo $process

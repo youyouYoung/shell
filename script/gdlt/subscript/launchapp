@@ -2,70 +2,65 @@
 ## 用于启动本地/服务器Tomcat
 ## 示例 launchapp -h gd212 -p baseproject 或者 launchapp
 
-host=localhost		## 服务器
-tomcatsuffix=_tomcat	## tomcat路径变量后缀名
-logsuffix=_logfile	## log文件路径变量后缀名
-project=""		## 项目名称
-orignproject=""		## 原始输入名称
-
-## 运行配置文件
-source $GDLTCONFIG
+target_host=localhost		## 服务器
+target_project=""		## 项目名称
 
 ## 获取主机名
 while getopts h:p: params
 do
 	case $params in
 	h)
-		host=$OPTARG
+		target_host=$OPTARG
 		;;
 	p)
-		project='_'$OPTARG
-		orignproject=$OPTARG
+		target_project=$OPTARG
 		;;
 	esac
 done
 
-if [ $host == "localhost" ]; then
-	PIDS=`pgrep -a java | grep $TOMCAT_HOME | cut -d' ' -f 1`
+if [ -z "$target_host" ]; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**launchapp**] 没有指定目标服务器.")}'
+	exit 1
+fi
 
-	## tomcat 已启动, 先关闭
+if [ -z "$target_project" ]; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**launchapp**] 没有指定目标项目名称.")}'
+	exit 1
+fi
+
+## 读取配置文件中服务器信息. 如果配置文件中存在任何错误, 则在这一步就会报错
+cd $SUBSCRIPT_PATH/awk ## 进入awk程序根目录
+serverInfo=`gawk -f server.awk -v server=$target_host -v project=$target_project $GDLTCONFIG`
+
+if [ $? -ne 0 ]; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**launchapp**] 读取配置文件服务器信息时出错, 错误信息请查看[**server.awk**]日志信息.")}'
+	exit 1
+fi
+
+for line in `echo $serverInfo`
+do
+	eval $line
+done
+
+if [ $target_host == "localhost" ]; then
+	PIDS=`ps -ef | grep $_server_path | awk '$8 !~ /^grep/ {print $2}'`
 	if [ -n "$PIDS" ]; then
-        	IFS_OLD=$IFS
-                IFS=$'\n'
-
+		gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Info: [**launchapp**] 当前应用已启动, 准备关闭进程.")}'
                 for pid in $PIDS
                 do
-                        echo "即将关闭进程: $pid"
+                        gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Info: [**launchapp**] 开始关闭进程['$pid'].")}'
                         kill -9 $pid
+			if `exit $?`; then
+				gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Info: [**launchapp**] 成功关闭进程['$pid'].")}'
+			else
+				gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Info: [**launchapp**] 无法关闭进程['$pid'].")}'
+			fi
                 done
-
-                IFS=$IFS_OLD
         fi
 
 	## 启动tomcat
-	nohup $TOMCAT_HOME/bin/catalina.sh run &> $localhost_logfile &
+	nohup $_server_path/bin/catalina.sh run &> $_server_log &
 else
-	## 服务器启动方法
-	
-	## 检查程序是否可执行
-	if [ -z "$project" ]; then
-        	echo "没有指定项目名称"
-	        exit 1
-	elif [ -z "$host" ]; then
-		echo "没有指定服务器名称"
-		exit 1
-	fi
-
-	eval tomcatpath='$'$host$project$tomcatsuffix
-	eval logpath='$'$host$project$logsuffix
-	if [ -z "$tomcatpath" ]; then
-		echo "配置文件中没有指定项目$project在服务器$host下的tomcat位置"
-		exit 1
-	elif [ -z "$logpath" ]; then
-		echo "配置文件中没有指定项目$project在服务器$host下的日志文件位置"
-		exit 1
-	fi
-
 	## 启动tomcat
-	ssh $host "upgradeapp -p $orignproject -l $tomcatpath &> $logpath"
+	ssh $target_host "upgradeapp -p $target_project -l $_server_path &> $_server_log"
 fi

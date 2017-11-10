@@ -2,109 +2,135 @@
 ## 用于检查本地/服务器上的tomcat是否已经启动
 ## 示例 
 
-host=localhost		## 服务器
-tomcatsuffix=_tomcat	## tomcat路径变量后缀名
-project=""		## 项目名称
-orignproject=""		## 输入的项目名称
-staticprefix="static"	## 不需要重启应用的文件名变量前缀
-dynamicprefix="dynamic"	## 需要重启应用的文件名变量前缀
-resourcesuffix="_resource"	## 待更新文件的变量
-updatetype=small	## 更新方式, small只更新静态文件, large更新动/静态文件, all更新所有文件且仅限于host==localhost时
-
-## 运行配置文件
-source $GDLTCONFIG
+target_host=""  ## 服务器
+target_project=""  ## 项目名称
+update_type="" ## 更新方式, small只更新静态文件, large更新动/静态文件, all更新所有文件且仅限于本地服务器使用
 
 ## 获取主机名
 while getopts h:p:t: params
 do
 	case $params in
 	h)
-		host=$OPTARG
+		target_host=$OPTARG
 		;;
 	p)
-		orignproject=$OPTARG
-		project='_'$orignproject
+		target_project=$OPTARG
 		;;
 	t)
-		updatetype=$OPTARG
+		update_type=$OPTARG
 		;;
 	esac
 done
 
-if [ -z "$project" ]; then
-	echo 没有指定项目名称
+if [ -z "$target_host" ]; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**updatefile**] 没有指定目标服务器.")}'
 	exit 1
 fi
 
-eval static_base_resourcepath='$'$staticprefix$resourcesuffix$project	##待更新静态文件基路径
-eval static_foldername='$'$staticprefix$project		## 待更新静态文件相对于基路径的文件名
-eval dynamic_resourcepath='$'$dynamicprefix$resourcesuffix$project	##待更新动态文件绝对路径
-eval dynamic_foldername='$'$dynamicprefix$project		## 待更新动态文件相对于web应用根目录的文件名
-
-if [ -z "$static_base_resourcepath" -o -z "$dynamic_resourcepath" ]; then
-	echo 没有在配置文件中找到项目$project在本地的待更新资源路径
+if [ -z "$target_project" ]; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**updatefile**] 没有指定目标项目名称.")}'
 	exit 1
 fi
 
-tomcatpath=""	## tomcat绝对路径
+## 读取配置文件中服务器信息. 如果配置文件中存在任何错误, 则在这一步就会报错
+cd $SUBSCRIPT_PATH/awk ## 进入awk程序根目录
+serverInfo=`gawk -f server.awk -v server=$target_host -v project=$target_project $GDLTCONFIG`
+
+if [ $? -ne 0 ]; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**updatefile**] 读取配置文件服务器信息时出错, 错误信息请查看[**server.awk**]日志信息.")}'
+	exit 1
+fi
+
+for line in `echo $serverInfo`
+do
+	eval $line
+done
+
+## 读取配置文件中项目信息. 如果配置文件中存在任何错误, 则在这一步就会报错
+projectInfo=`gawk -f project.awk -v project=$target_project $GDLTCONFIG`
+
+if [ $? -ne 0 ]; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**updatefile**] 读取配置文件中的项目信息时出错, 错误信息请查看[**project.awk**]日志信息.")}'
+	exit 1
+fi
+
+for line in `echo $projectInfo`
+do
+	eval $line
+done
+
+## 生成删除/复制命令
 copycommand_prefix=""	## copy命令的前缀
 copycommand_suffix=""	## copy命令的后缀
 removecommand_prefix=""	## remove命令的前缀
 removecommand_suffix=""	## remove命令的后缀
 
-if [ $host == "localhost" ]; then 
-	eval tomcatpath='$'$host$tomcatsuffix
+if [ $target_host == "localhost" ]; then 
 	copycommand_prefix="cp -r"
 	removecommand_prefix="rm -rf"
 else
-	eval tomcatpath='$'$host$project$tomcatsuffix
 	copycommand_prefix="scp -r"
-	copycommand_suffix="$host:"
-	removecommand_prefix="ssh $host ' rm -rf"
+	copycommand_suffix="$target_host:"
+	removecommand_prefix="ssh $target_host ' rm -rf"
 	removecommand_suffix="'"
 fi
 
-if [ -z "$tomcatpath" ]; then
-	echo 没有在配置文件中找到$host服务器中$project项目对应的tomcat地址
-	exit 1
-fi
-
-if [ $updatetype == "large" ]; then
-	## 更新动态文件
-	IFS_OLD=$IFS
-        IFS=':'
-        for line in $dynamic_resourcepath
+## 更新动态文件
+if [ $update_type == "large" -a -n "$_project_dynamic_source" ]; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Info: [**updatefile**] 开始为服务器['$target_host']中的项目['$target_project']更新动态文件.")}'
+	i=1
+        for line in `echo $_project_dynamic_source | tr ':' '\n'`
         do
-		IFS=$IFS_OLD
-		## echo $removecommand_prefix' '$tomcatpath'/webapps/'$orignproject'/'$dynamic_foldername' '$removecommand_suffix
-		eval $removecommand_prefix' '$tomcatpath'/webapps/'$orignproject'/'$dynamic_foldername' '$removecommand_suffix &> /dev/null
-		## echo $copycommand_prefix' '$line' '$copycommand_suffix$tomcatpath'/webapps/'$orignproject'/'$dynamic_foldername
-		eval $copycommand_prefix' '$line' '$copycommand_suffix$tomcatpath'/webapps/'$orignproject'/'$dynamic_foldername &> /dev/null
+		target_file_relative_path=`echo $_project_dynamic_target | cut -d ':' -f $i` ## 目标文件相对于项目根目录的相对位置
+
+		remove_command=$removecommand_prefix' '$_server_path/'webapps'/$target_host/$target_file_relative_path' '$removecommand_suffix
+		echo $remove_command | gawk -f $LOG_MAKER -e '{LogMark("Command: [**updatefile**] " $0)}'
+		#eval $remove_command &> /dev/null
+
+		copy_command=$copycommand_prefix' '$_project_resource_basepath/$line' '$copycommand_suffix$_server_path/'webapps'/$target_host/$target_file_relative_path
+		echo $copy_command | gawk -f $LOG_MAKER -e '{LogMark("Command: [**updatefile**] " $0)}'
+		#eval $copy_command &> /dev/null
+
+		((i++))
 	done
-	
-	notify-send class文件更新完成
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Info: [**updatefile**] 已完成对服务器['$target_host']中项目['$target_project']的动态文件更新过程.")}'
 fi
 
-if [ $updatetype != "all" ]; then
-	## 更新静态文件
-	IFS_OLD=$IFS
-	IFS=':'
-	for line in $static_foldername
+## 只要不是全部更新, 都需要更新静态文件
+if [ $update_type != "all" -a -n "$_project_static_source" ]; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Info: [**updatefile**] 开始为服务器['$target_host']中的项目['$target_project']更新静态文件.")}'
+	i=1
+	for line in `echo $_project_static_source | tr ':' '\n'`
 	do
-		IFS=$IFS_OLD
-		## echo $removecommand_prefix' '$tomcatpath'/webapps/'$orignproject'/'$line' '$removecommand_suffix
-		eval $removecommand_prefix' '$tomcatpath'/webapps/'$orignproject'/'$line' '$removecommand_suffix
-		## echo $copycommand_prefix' '$static_base_resourcepath'/'$line' '$copycommand_suffix$tomcatpath'/webapps/'$orignproject'/'$line
-		eval $copycommand_prefix' '$static_base_resourcepath'/'$line' '$copycommand_suffix$tomcatpath'/webapps/'$orignproject'/'$line &> /dev/null
-	done
+		target_file_relative_path=`echo $_project_static_target | cut -d ':' -f $i` ## 目标文件相对于项目根目录的相对位置
 
-	notify-send 非class文件更新完成
+		remove_command=$removecommand_prefix' '$_server_path/'webapps'/$target_host/$target_file_relative_path' '$removecommand_suffix
+		echo $remove_command | gawk -f $LOG_MAKER -e '{LogMark("Command: [**updatefile**] " $0)}'
+		#eval $remove_command &> /dev/null
+
+		copy_command=$copycommand_prefix' '$_project_resource_basepath/$line' '$copycommand_suffix$_server_path/'webapps'/$target_host/$target_file_relative_path
+		echo $copy_command | gawk -f $LOG_MAKER -e '{LogMark("Command: [**updatefile**] " $0)}'
+		#eval $copy_command &> /dev/null
+
+		((i++))
+	done
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Info: [**updatefile**] 已完成对服务器['$target_host']中项目['$target_project']的静态文件更新过程.")}'
 fi
 
-if [ $updatetype == "all" -a $host == "localhost" ]; then
-	ant -buildfile $JAVAFILEPATH/$orignproject/build.xml full
-	if [ $? -ne 0 ]; then
-		echo ant没有执行成功
+## 全部更新模式
+if [ $update_type == "all" ]; then
+	if [ $target_host != "localhost" ]; then
+		gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**updatefile**] 不能对非本地服务器['$target_host']进行[全部更新]模式的项目更新.")}'
 		exit 1
+	fi
+
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Info: [**updatefile**] 开始为本地服务器[localhost]中的项目['$target_project']实施全部更新操作.")}'
+	ant -buildfile $JAVAFILEPATH/$target_project/build.xml full | gawk -f $LOG_MAKER -e '{LogMark("Command: [**updatefile.ant**] " $0)}'
+
+	if [ $? -ne 0 ]; then
+		gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**updatefile**] 对项目['$target_project']进行[全部更新]模式的更新时出错, 错误信息请查看[**updatefile.ant**]日志错误.")}'
+		exit 1
+	else
+		gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Info: [**updatefile**] 已完成对本地服务器[localhost]中项目['$target_project']的全部更新过程.")}'
 	fi
 fi
