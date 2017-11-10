@@ -1,14 +1,146 @@
-#! /home/yang/fast/script/gdlt/config
-## 服务器信息
-<server name="gd212" ip="192.168.0.212">
-	<webapp project="modulequality" path="/home/data/application/modulequality-tomcat-9.0.0.M17" log="/home/data/application/modulequality-tomcat-9.0.0.M17/bin/nohup.out">
-	<webapp project="baseproject" path="/home/data/application/baseproject-tomcat-9.0.0.M17" log="/home/data/application/baseproject-tomcat-9.0.0.M17/bin/nohup.out">
-</server>
-<server>qwerqwer</server>
+<!--- -------------------------- 语法说明 -------------------------- --->
+<!--- 1. 从注释起始位置以后的所有内容都为注释 --->
+<!--- 2. 父标签下的第一个子标签用于对该父标签(在它所在的父标签范围内)进行唯一标识 --->
+<!--- 3. 格式为普通的xml格式: <标签名>标签值</标签名> --->
+<!--- 4. 标签名中不能添加属性信息. 例如<标签 属性="属性值"> 这个格式是不合法的!!!!!! --->
 
-## 项目信息
-<project name="modulequality">
-	<staticfile>
-		<resource name="admin" source="$WORKSPACE_BASEPATH/eclipse/modulequality/src/main/webapp/admin" target="/admin">
-	</staticfile>
+<!--- -------------------------- 服务器信息 -------------------------- --->
+<!--- 每个服务器信息必须在<server></server>之间才有效, 其中包含服务器名称, IP地址, Web服务器信息这些内容. --->
+<!--- <name>服务器名称</name> --->
+<!--- <ip>服务器对应的ip</ip> --->
+<!--- <webserver>web服务器信息</webserver>, 其中包含服务器中具有的项目名称, 服务器的绝对路径, 日志的绝对路径. --->
+<!--- <project>web服务器下的项目(*表示所有项目)</project> --->
+<!--- <path>web服务器绝对路径</path> --->
+<!--- <log>web服务器的日志文件绝对路径</log> --->
+
+<server>
+	<name>localhost</name>
+	<webserver>
+		<project>*</project>
+		<path>/home/yang/fast/programs/apache-tomcat-9.0.0.M26/webapps/*</path>
+		<log>/home/yang/fast/log/tomcat.log</log>
+	</webserver>
+</server>
+
+<server>
+	<name>gd212</name>
+	<ip>192.168.0.212</ip>
+
+	<webserver>
+		<project>modulequality</project>
+		<path>/home/data/application/modulequality-tomcat-9.0.0.M17/modulequality</path>
+		<log>/home/data/application/modulequality-tomcat-9.0.0.M17/bin/nohup.out</log>
+	</webserver>
+
+	<webserver>
+		<project>baseproject</project>
+		<path>/home/data/application/baseproject-tomcat-9.0.0.M17/baseproject</path>
+		<log>/home/data/application/baseproject-tomcat-9.0.0.M17/bin/nohup.out</log>
+	</webserver>
+
+	<webserver>
+		<project>mucenter</project>
+		<path>/home/data/project/tomcat_ucenter/mucenter</path>
+		<log>/home/data/project/tomcat_ucenter/bin/nohup.out</log>
+	</webserver>
+</server>
+
+<server>
+	<name>yj22</name>
+	<ip>119.254.119.22</ip>
+
+	<webserver>
+		<project>modulequality</project>
+		<path>/opt/project/modulequality-tomcat-9.0.0.M4</path>
+		<log>/opt/project/modulequality-tomcat-9.0.0.M4/bin/nohup.out</log>
+	</webserver>
+</server>
+
+<server>
+	<name>yj25</name>
+	<ip>119.254.119.25</ip>
+
+	<webserver>
+		<project>modulequality</project>
+		<path>/opt/project/modulequality-tomcat-9.0.0.M4</path>
+		<log>/opt/project/modulequality-tomcat-9.0.0.M4/bin/nohup.out</log>
+	</webserver>
+</server>
+
+<server>
+	<name>yj27</name>
+	<ip>119.254.119.27</ip>
+
+	<webserver>
+		<project>modulequality</project>
+		<path>/opt/project/modulequality-tomcat-9.0.0.M4</path>
+		<log>/opt/project/modulequality-tomcat-9.0.0.M4/bin/nohup.out</log>
+	</webserver>
+</server>
+
+<!--- -------------------------- 项目信息 -------------------------- --->
+<!--- 每一个关于项目的信息必须包含在<project></project>之间, 其中包含该项目所有需要更新的内容(静态/动态), 项目源文件的根目录的绝对路径, 项目名称这些信息 --->
+<!--- <static>静态文件信息, 文件源相对于项目根目录的路径, 文件相对于web服务器下项目根目录的地址</static> --->
+
+<!--- modulequality --->
+<project>
+	<name>modulequality</name>
+	<resource>/home/yang/Documents/workspace/eclipse/modulequality</resource>
+	<static>
+		<order>1</order><!--- 文件序号 --->
+		<source>src/main/webapp/admin</source>
+		<target>admin</target>
+	</static>
+	<static>
+		<order>2</order>
+		<source>src/main/webapp/static</source>
+		<target>static</target>
+	</static>
+	<static>
+		<order>3</order>
+		<source>src/main/webapp/WEB-INF/jsps</source>
+		<target>WEB-INF/jsps</target>
+	</static>
+	<dynamic>
+		<order>1</order>
+		<source>target/classes/com</source>
+		<target>WEB-INF/classes/com</target>
+	</dynamic>
+	<dynamic>
+		<order>2</order>
+		<source>src/main/webapp/WEB-INF/tlds</source>
+		<target>WEB-INF/tlds</target>
+	</dynamic>
+</project>
+
+<!--- baseproject --->
+<project>
+	<name>baseproject</name>
+	<resource>/home/yang/Documents/workspace/eclipse/baseproject</resource>
+	<static>
+		<order>1</order>
+		<source>src/main/webapp/static</source>
+		<target>static</target>
+	</static>
+	<static>
+		<order>2</order>
+		<source>src/main/webapp/WEB-INF/jsps</source>
+		<target>WEB-INF/jsps</target>
+	</static>
+	<dynamic>
+		<order>3</order>
+		<source>target/classes/com</source>
+		<target>WEB-INF/classes/com</target>
+	</dynamic>
+</project>
+
+<!--- mucenter --->
+<project>
+	<name>mucenter</name>
+	<resource>/home/yang/Documents/workspace/eclipse/mucenter</resource>
+	<dynamic>
+		<order>1</order>
+		<source>target/classes/com</source>
+		<target>WEB-INF/classes/com</target>
+	</dynamic>
 </project>
