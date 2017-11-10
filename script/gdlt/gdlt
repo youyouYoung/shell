@@ -1,108 +1,113 @@
 #! /bin/bash
-## 用于更新Java Web项目，同时在必要的时候启动Tomcat.
+# 功能介绍:
+# 1. 启动web/redis服务器
+# 2. 更新web项目文件
+# 3. 查看web服务器日志
 
-replaceall=false	## 是否替换项目中所有易修改内容, 包括 com+jsps
-ultimatereplace=false	## 是否将旧项目剔除, 完全替换
-staticfileonly=false	## 只更新静态文件
-restartapp=false	## 是否强制重启应用
-checkmessage=false	## 查看日志
-projectname=''		## 项目名称
-host=localhost		## 服务器
-localredisport="6379"	## 本地开启的redis端口号, 按照大小排序即可
-scriptpath=/home/yang/fast/script/gdlt	## 辅助脚本文件位置
-export GDLTCONFIG=/home/yang/fast/config/gdlt.config	## 配置文件路径
+# 注意:
+# 1. 在bash中, 将0定义为true, 1定义为false
 
+## 影响程序运行方式的变量
+target_host=localhost  ## 目标服务器名, 默认为localhost
+target_project=""  ## 项目名称
+check_message=1  ## 查看日志
+launch_tomcat=1  ## 启动tomcat
+replace_level=""  ## 更新方式, 有全部替换(all)/动+静替换(large)/静替换(small)
+
+## 程序中的常量
+export SUBSCRIPT_PATH=/home/yang/fast/script/gdlt  ## 辅助脚本文件位置
+export LOG_MAKER=/home/yang/fast/script/gdlt/awk/log.awk  ## 创建日志的awk方法
+export GDLTCONFIG=/home/yang/fast/config/gdltconfig.xml  ## 配置文件路径
+
+## 程序从这里开始
 while getopts cSsaup:h: params
 do
 	case $params in 
 	c)
-		checkmessage=true
+		check_message=0
 		;;
 	s)
-		staticfileonly=true
+		replace_level="small"
 		;;
 	a)
-		replaceall=true
-		checkmessage=true
+		replace_level="large"
+		check_message=0
+		launch_tomcat=0
 		;;
 	u)
-		ultimatereplace=true
-		checkmessage=true
+		replace_level="all"
+		check_message=0
+		launch_tomcat=0
 		;;
 	p)
-		projectname=$OPTARG
+		target_project=$OPTARG
 		;;
 	h)
-		host=$OPTARG
+		target_host=$OPTARG
 		;;
 	S)
-		restartapp=true
-		checkmessage=true
+		launch_tomcat=0
+		check_message=0
 		;;
 	\?)
-		## echo "Invalid option: -$params"
 		echo -e "用法: upgradeModulequality.sh [options] [params]"
 		echo -e "\t-c --checkmessage\t 查看日志"
 		echo -e "\t-s --staticonly\t\t 只替换项目中静态文件, 不重启tomcat"
 		echo -e "\t-S --restartapp\t\t 强制重启应用服务器"
 		echo -e "\t-a --replaceall\t\t 替换项目中所有易修改内容, 包括 com+jsps."
 		echo -e "\t-u --ultimatereplace\t 将旧项目剔除, 完全替换工作路径下的内容."
-		echo -e "\t-p --projectname project 将对工作路径下名称为project的项目进行更新."
+		echo -e "\t-p --target_project project 将对工作路径下名称为project的项目进行更新."
 		echo -e "\t-h --host\t\t 目的服务器"
 		exit 0
 		;;
 	esac
 done
 
-## 检查程序是否可执行
-if [ -z "$projectname" ]; then
-	echo "没有指定项目名称"
+## 项目名称必填
+if [ -z "$target_project" ]; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**gdlt**] 没有指定目标项目名称.")}'
 	exit 1
 fi
 
-projectpath=$JAVAFILEPATH/$projectname
-if [ ! -e "$projectpath" ]; then
-	echo "没有找到该项目: [$projectpath]"
+## 指定项目必须存在且是目录
+if [ ! -d "$JAVAFILEPATH/$target_project" ]; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**gdlt**] 没有在根目录['$JAVAFILEPATH']下找到目标项目['$target_project'].")}'
 	exit 1
 fi
 
-## 打包项目到Web服务器
-updatetype=''
-if [ "$ultimatereplace" = "true" ]; then
-	updatetype="all"
-elif [ "$replaceall" = "true" ]; then
-	updatetype="large"
-elif [ "$staticfileonly" = "true" ]; then
-	updatetype="small"
-fi
-
-if [ -n "$updatetype" ]; then
-	echo "开始更新项目"
-	$scriptpath/updatefile -h $host -p $projectname -t $updatetype
+## 更新项目
+if [ -n "$replace_level" ]; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Info: [**gdlt**] 开始为目标服务器['$target_host']更新项目['$target_project'].")}'
+	$SUBSCRIPT_PATH/updatefile -h $target_host -p $target_project -t $replace_level
+	
 	if [ $? -ne 0 ]; then
-		echo "文件更新失败!"
+		gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**gdlt**] 项目更新失败, 错误信息请查看[**updatefile**]日志信息.")}'
 		exit 1
+	else
+		gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Info: [**gdlt**] 完成对目标服务器['$target_host']项目['$target_project']的更新任务.")}'
 	fi
 fi
 
-## 启动Tomcat
-if [ "$host" = "localhost" -a "`pgrep -a redis-server | awk '{print $3}' | cut -d: -f 2 | sort | tr -d '\n'`" != "$localredisport" ]; then
-	## 如果是对本地项目进行操作, 且本地没有通过三个端口启动redis, 调用启动redis命令
-	echo "启动本地redis"
-	$scriptpath/localredis
+## 没有标注启动tomcat(launch_tomcat=1)时, 如果需要查看日志信息且没检查到应用进程信息则将launch_tomcat=0
+if `exit $check_message` && [ -z "`$SUBSCRIPT_PATH/process -h $target_host -p $target_project`" ]; then
+	launch_tomcat=0
 fi
 
-if [ "$restartapp" = "true" -o $ultimatereplace = "true" -o $replaceall = "true" -o -z "`$scriptpath/process -h $host -p $projectname`" ]; then
-	echo "启动web服务器"
-	$scriptpath/launchapp -h $host -p $projectname
+## 启动项目程序
+if `exit $launch_tomcat`; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Info: [**gdlt**] 准备启动目标服务器['$target_host']中项目['$target_project']所在的应用程序.")}'
+
+	$SUBSCRIPT_PATH/launchapp -h $target_host -p $target_project
+
 	if [ $? -ne 0 ]; then
+		gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**gdlt**] 项目启动失败, 错误信息请查看[**launchapp**]日志信息.")}'
 		exit 1
+	else
+		gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Info: [**gdlt**] 成功启动目标服务器['$target_host']中对应的应用程序.")}'
 	fi
 fi
 
-if [ $checkmessage = "true" ]; then
-	$scriptpath/checklog -h $host -p $projectname
-	if [ $? -ne 0 ]; then
-		exit 1
-	fi
+## 查看日志
+if `exit $check_message`; then
+	$SUBSCRIPT_PATH/checklog -h $target_host -p $target_project
 fi
