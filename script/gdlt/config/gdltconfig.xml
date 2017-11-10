@@ -17,7 +17,7 @@
 	<name>localhost</name>
 	<webserver>
 		<project>*</project>
-		<path>/home/yang/fast/programs/apache-tomcat-9.0.0.M26/webapps/*</path>
+		<path>/home/yang/fast/programs/apache-tomcat-9.0.0.M26</path>
 		<log>/home/yang/fast/log/tomcat.log</log>
 	</webserver>
 </server>
@@ -28,19 +28,19 @@
 
 	<webserver>
 		<project>modulequality</project>
-		<path>/home/data/application/modulequality-tomcat-9.0.0.M17/modulequality</path>
+		<path>/home/data/application/modulequality-tomcat-9.0.0.M17</path>
 		<log>/home/data/application/modulequality-tomcat-9.0.0.M17/bin/nohup.out</log>
 	</webserver>
 
 	<webserver>
 		<project>baseproject</project>
-		<path>/home/data/application/baseproject-tomcat-9.0.0.M17/baseproject</path>
+		<path>/home/data/application/baseproject-tomcat-9.0.0.M17</path>
 		<log>/home/data/application/baseproject-tomcat-9.0.0.M17/bin/nohup.out</log>
 	</webserver>
 
 	<webserver>
 		<project>mucenter</project>
-		<path>/home/data/project/tomcat_ucenter/mucenter</path>
+		<path>/home/data/project/tomcat_ucenter</path>
 		<log>/home/data/project/tomcat_ucenter/bin/nohup.out</log>
 	</webserver>
 </server>
