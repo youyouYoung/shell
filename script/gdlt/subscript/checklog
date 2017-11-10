@@ -2,41 +2,49 @@
 ## 用来显示本地/服务器Web应用日志内容
 ## 示例 checklog -p modulequality -h gd212  或者 checklog
 
-host=localhost		## 服务器
-logsuffix=_logfile	## 日志文件路径变量后缀名
-logfile=""		## 日志文件位置
-project=""		## 项目名称
-
-## 运行配置文件
-source $GDLTCONFIG
+target_host=localhost		## 服务器
+target_project=""		## 项目名称
 
 ## 获取主机名
 while getopts h:p: params
 do
 	case $params in
 	h)
-		host=$OPTARG
+		target_host=$OPTARG
 		;;
 	p)
-		project='_'$OPTARG
+		target_project=$OPTARG
 		;;
 	esac
 done
 
-## 输出日志
-if [ $host == "localhost" ]; then
-	eval logfile='$'$host$logsuffix
-	if [ ! -f $logfile ]; then 
-		sleep 2s 
-	fi
-	tail -f $logfile
-else
-	## 检查程序是否可执行
-	if [ -z "$project" ]; then
-	        echo "没有指定项目名称"
-	        exit 1
-	fi
+if [ -z "$target_host" ]; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**launchapp**] 没有指定目标服务器.")}'
+	exit 1
+fi
 
-	eval logfile='$'$host$project$logsuffix
-	ssh $host "tail -f $logfile"
+if [ -z "$target_project" ]; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**launchapp**] 没有指定目标项目名称.")}'
+	exit 1
+fi
+
+## 读取配置文件中服务器信息. 如果配置文件中存在任何错误, 则在这一步就会报错
+cd $SUBSCRIPT_PATH/awk ## 进入awk程序根目录
+serverInfo=`gawk -f server.awk -v server=$target_host -v project=$target_project $GDLTCONFIG`
+
+if [ $? -ne 0 ]; then
+	gawk -f $LOG_MAKER -e 'BEGIN {LogMark("Error: [**launchapp**] 读取配置文件服务器信息时出错, 错误信息请查看[**server.awk**]日志信息.")}'
+	exit 1
+fi
+
+for line in `echo $serverInfo`
+do
+	eval $line
+done
+
+## 输出日志
+if [ $target_host == "localhost" ]; then
+	tail -f $_server_log
+else
+	ssh $target_host "tail -f $_server_log"
 fi
