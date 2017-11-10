@@ -10,4 +10,5 @@ function LogMark(content) {
 
 	if (!content) return
 	printf "%19s --- %s\n", ConvTime(), content >> AWK_LOG
+	fflush()
 }
