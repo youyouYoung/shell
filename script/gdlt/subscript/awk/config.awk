@@ -25,7 +25,7 @@
 		MakeParentMark() ## 为未配平标签数组中当前标签以前的标签贴上父标签的标识
 
 		if (_rc_tempValue) { ## 临时标签值不为空
-			LogMark("Error: 文件["FILENAME"]在行["FNR"]位置附近有语法错误! 错误原因: 在标签<"_rc_labelInfo["start"]">的父标签中存在标签值.")
+			LogMark("Error: [**config.awk**] 文件["FILENAME"]在行["FNR"]位置附近有语法错误! 错误原因: 在标签<"_rc_labelInfo["start"]">的父标签中存在标签值.")
 			SomethingWrong()
 		}
 	}
@@ -69,7 +69,7 @@ function GetContentInfo(_gci_content, _gci_result,      _gci_start_regex, _gci_v
 ## _met_position 遍历数组使用的索引
 function MeetEndTitle(_met_ubcIndex, _met_endTitle, _met_value,           _met_indice, _met_position) {
 	if (!_met_ubcIndex || _rc_unbalancedTitle[_met_ubcIndex] != _met_endTitle) { ## 未配平数组中没有元素, 或者最后一个元素的值和结束标签不一致
-		LogMark("Error: 文件["FILENAME"]在行["FNR"]位置附近有语法错误! 错误原因: 没有找到结束标签</"_met_endTitle">的开始标签.")
+		LogMark("Error: [**config.awk**] 文件["FILENAME"]在行["FNR"]位置附近有语法错误! 错误原因: 没有找到结束标签</"_met_endTitle">的开始标签.")
 		SomethingWrong()
 	}
 
@@ -82,8 +82,7 @@ function MeetEndTitle(_met_ubcIndex, _met_endTitle, _met_value,           _met_i
 		}
 
 		## 不是父标签的标签没有标签值, 则发出警告
-		LogMark("Warning: 文件["FILENAME"]在行["FNR"]位置附近对于标签<"_met_endTitle">没有指定值.")
-		print "****警告****: 文件["FILENAME"]在行["FNR"]位置附近对于标签<"_met_endTitle">没有指定值."
+		LogMark("Warning: [**config.awk**] 文件["FILENAME"]在行["FNR"]位置附近对于标签<"_met_endTitle">没有指定值.")
 	}
 
 	## 为父标签设置唯一值标识, 即父标签的第一个子标签的值
