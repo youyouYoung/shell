@@ -83,13 +83,13 @@ if [ $update_type == "large" -a -n "$_project_dynamic_source" ]; then
         do
 		target_file_relative_path=`echo $_project_dynamic_target | cut -d ':' -f $i` ## 目标文件相对于项目根目录的相对位置
 
-		remove_command=$removecommand_prefix' '$_server_path/'webapps'/$target_host/$target_file_relative_path' '$removecommand_suffix
+		remove_command=$removecommand_prefix' '$_server_path/'webapps'/$target_project/$target_file_relative_path' '$removecommand_suffix
 		echo $remove_command | gawk -f $LOG_MAKER -e '{LogMark("Command: [**updatefile**] " $0)}'
-		#eval $remove_command &> /dev/null
+		eval $remove_command &> /dev/null
 
-		copy_command=$copycommand_prefix' '$_project_resource_basepath/$line' '$copycommand_suffix$_server_path/'webapps'/$target_host/$target_file_relative_path
+		copy_command=$copycommand_prefix' '$_project_resource_basepath/$line' '$copycommand_suffix$_server_path/'webapps'/$target_project/$target_file_relative_path
 		echo $copy_command | gawk -f $LOG_MAKER -e '{LogMark("Command: [**updatefile**] " $0)}'
-		#eval $copy_command &> /dev/null
+		eval $copy_command &> /dev/null
 
 		((i++))
 	done
@@ -104,13 +104,13 @@ if [ $update_type != "all" -a -n "$_project_static_source" ]; then
 	do
 		target_file_relative_path=`echo $_project_static_target | cut -d ':' -f $i` ## 目标文件相对于项目根目录的相对位置
 
-		remove_command=$removecommand_prefix' '$_server_path/'webapps'/$target_host/$target_file_relative_path' '$removecommand_suffix
+		remove_command=$removecommand_prefix' '$_server_path/'webapps'/$target_project/$target_file_relative_path' '$removecommand_suffix
 		echo $remove_command | gawk -f $LOG_MAKER -e '{LogMark("Command: [**updatefile**] " $0)}'
-		#eval $remove_command &> /dev/null
+		eval $remove_command &> /dev/null
 
-		copy_command=$copycommand_prefix' '$_project_resource_basepath/$line' '$copycommand_suffix$_server_path/'webapps'/$target_host/$target_file_relative_path
+		copy_command=$copycommand_prefix' '$_project_resource_basepath/$line' '$copycommand_suffix$_server_path/'webapps'/$target_project/$target_file_relative_path
 		echo $copy_command | gawk -f $LOG_MAKER -e '{LogMark("Command: [**updatefile**] " $0)}'
-		#eval $copy_command &> /dev/null
+		eval $copy_command &> /dev/null
 
 		((i++))
 	done
