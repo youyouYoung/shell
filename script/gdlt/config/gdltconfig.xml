@@ -144,3 +144,24 @@
 		<target>WEB-INF/classes/com</target>
 	</dynamic>
 </project>
+
+<!--- exam --->
+<project>
+	<name>exam</name>
+	<resource>/home/yang/Documents/workspace/eclipse/exam</resource>
+	<static>
+		<order>1</order>
+		<source>src/main/webapp/static</source>
+		<target>static</target>
+	</static>
+	<static>
+		<order>2</order>
+		<source>src/main/webapp/WEB-INF/jsps</source>
+		<target>WEB-INF/jsps</target>
+	</static>
+	<dynamic>
+		<order>1</order>
+		<source>target/classes/com</source>
+		<target>WEB-INF/classes/com</target>
+	</dynamic>
+</project>
