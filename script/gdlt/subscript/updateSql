@@ -1,0 +1,3 @@
+#! /bin/bash
+## 2018-01-18 由于青峰正式使用, 小菲配置了第一批SOP. 这批SOP产生的邮件青峰要求不要发送, 这里特此防止突发状况的发生.
+mysql -u modulequality -pmodulequality12345\!@#$. -D modulequality -e "update t_mail set sendstatus = 4, sendexception = '经青峰要求, 这批邮件不需要发送' where sendstatus = 0;"
