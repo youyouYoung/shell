@@ -1,5 +1,24 @@
-文件命名的规则:
-命令名称+等级+用途的一级定义+用途的二级定义
+# Commands
+---
+这部分是对命令功能和使用方式的讲解.
+
+## Table of Contents
+---
+- [File](#file)
+- [Device](#device)
+
+## [File](./File/README.md)
+---
+文件管理, 标准输入也是文件
+
+## [Device](./Device/README.md)
+---
+设备管理
+
+
+# 文件命名的规则
+---
+- 命令名称+等级用途的一级定义+用途的二级定义
 其中,只有用途的二级定义是可缺省的.
 
 #
@@ -57,4 +76,3 @@ compare			文件或者字符比较
 encode			文件编码管理
 terminal		终端设备管理
 compress		压缩命令
-
