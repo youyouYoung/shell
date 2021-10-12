@@ -1,2 +1,4 @@
 # backup file from windows' editplus
 *.bak
+node_modules/
+_book/
