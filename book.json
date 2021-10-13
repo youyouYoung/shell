@@ -1,0 +1,18 @@
+{
+  "title" : "The commands of Bash Shell",
+  "author" : "youyou",
+  "plugins": [
+    "code",
+    "-lunr", "-search", "search-pro",
+    "github",
+    "splitter",
+    "popup",
+    "expandable-chapters",
+    "ancre-navigation"
+  ],
+  "pluginsConfig": {
+    "github": {
+      "url": "https://github.com/youyouYoung/shell"
+    }
+  }
+}
