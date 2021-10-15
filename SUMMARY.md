@@ -10,6 +10,7 @@
     - [uudecode](Commands/File/uudecode.md)
     - [uuencode](Commands/File/uuencode.md)
   * [User](Commands/User/readme.md)
+    - [userdel](Commands/User/userdel.md)
     - [usermod](Commands/User/usermod.md)
     - [who](Commands/User/who.md)
 * [Todo](todo.md)
