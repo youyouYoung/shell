@@ -80,19 +80,64 @@
   - 设置用户的登录shell.
   - 这个选项将会设置`/etc/default/useradd`的`SHELL`变量.
 
-#注意
-1.使用useradd创建用户时,需自行指定账号在passwd文件中的各字段值.
-2.如果没有在创建时指定的话(useradd name),将使用默认文件中对字段值的定义.默认文件为/etc/default/useradd.
-3.-D选项后再加上其他选项,可修改建立账号时的默认值.(b,e,f,g,s)
+## 5. 相关配置
+一下配置参数都保存在`/etc/login.defs`文件中.  
+* `CREATE_HOME` (boolean)
+  - 标识默认情况下是否为用户创建home目录.
+  - 这个设置不会应用在系统用户上, 但是可以通过命令行参数为系统用户创建home目录.
+* `GID_MAX` (number), `GID_MIN` (number)
+  - 指定用于创建用户组id的范围.
+* `HOME_MOD` (number)
+  - 规定新账户home目录的权限. 如果没有指定的话, `UMASK`的值会被用来作为home的权限.
+  - `useradd`和`newusers`使用这个参数设置home目录的权限.
+* `PASS_MAX_DAYS` (number)
+  - 密码最久可以使用的天数. 如果当前密码的使用时长超过了这个天数, 会强制要求修改密码. 如果没有指定的话, -1会被作为默认项.(-1代表禁用密码过期功能.)
+* `PASS_MIN_DAYS` (number)
+  - 设置修改密码的最短天数. 任何的关于密码的修改如果两次修改之间的时间小于指定的时间, 密码修改操作将会被拒绝. 如果没有指定的话, -1会被作为默认项.(-1代表禁用这个功能.)
+* `PASS_WARN_AGE` (number)
+  - 设置一个天数, 在密码过期前的指定天数为账户发送警告. 0表示只有在密码过期的当天发送警告, 负数表示不会发送警告. 如果没有指定的话, 不会发送警告.
+* `SYS_UID_MAX` (number), `SYS_UID_MIN` (number)
+  - 为`useradd`和`newusers`创建系统用户设置系统用户id的范围.
+* `UID_MAX` (number), `UID_MIN` (number)
+  - 为`useradd`和`newusers`创建登录账户的用户id范围.
+* `UMASK` (number)
+  - 设置文件创建时的权限. 如果没有指定的话, 这个权限会被设置为022.
+  - 如果没有设置`HOME_MOD`, `useradd`和`newusers`会使用这个参数的值为账户的home目录设置权限.
+* `USERGROUPS_ENAB` (boolean)
+  - 如果值为yes, `userdel`会在删除账户时删除对应的用户组, 如果这个组中没有其他的账户. `useradd`会为账户创建一个同名的用户组.
 
+## 6. 相关文件
+* `/etc/passwd`
+  - 保存账号信息的文件  
+* `/etc/shadow`
+  - 保存账号信息的文件, 去除了密码的部分.
+* `/etc/group`
+  - 保存组信息的文件  
+* `/etc/login.defs`
+  - 用户, 密码配置信息保存的文件 
+* `/etc/skel/`
+  - 保存默认文件的目录, 在创建用户时会将这个目录下的所有文件复制到用户home路径下.
 
-#示例
-useradd -g groupName userName //添加用户到指定的组中 
+## 7. 返回值
+|返回值|含义|
+| --- | --- |
+| 0  | 执行成功  |
+| 1  | 无法更新密码文件  |
+| 2  | 使用命令的语法出错  |
+| 3  | 选项输入的参数错误  |
+| 4  | UID已存在  |
+| 6  | 指定的用户组不存在  |
+| 9  | 用户名被占用  |
+| 10  | 无法更新用户组文件信息  |
+| 12  | 无法创建账户的home目录  |
 
-cat /etc/passwd  //查询系统中所有的用户
+## 8. 示例
+``` shell
+useradd -g groupName userName #添加用户到指定的组中 
+cat /etc/passwd #查询系统中所有的用户
 
-
-//add sudo right for user xi
+#add sudo right for user xi
 cd /etc/sudo.d/
 touch xi
 xi ALL=(ALL)ALL>xi
+```
