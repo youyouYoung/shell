@@ -7,6 +7,8 @@
     - [sync](Commands/Device/sync.md)
     - [stty](Commands/Device/stty.md)
   * [File](Commands/File/readme.md)
+    - [whereis](Commands/File/whereis.md)
+    - [which](Commands/File/which.md)
   * [System](Commands/System/readme.md)
     - [sync](Commands/System/sync.md)
   * [User](Commands/User/readme.md)
