@@ -41,9 +41,9 @@
     - [sync](Commands/System/sync.md)
 
 * [User](Commands/User/readme.md)
-    - [tar](Commands/User/useradd.md)
-    - [unzip](Commands/User/userdel.md)
-    - [whereis](Commands/User/usermod.md)
-    - [which](Commands/User/who.md)
+    - [useradd](Commands/User/useradd.md)
+    - [userdel](Commands/User/userdel.md)
+    - [usermod](Commands/User/usermod.md)
+    - [who](Commands/User/who.md)
 
 ### [Todo](Todo.md)
