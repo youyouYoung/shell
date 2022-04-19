@@ -24,10 +24,10 @@
 
 ## [Commands](Commands/README.md)
 
-* [Device](Commands/Device/readme.md)
+* [Device](Commands/Device/README.md)
     - [stty](Commands/Device/stty.md)
 
-* [File](Commands/File/readme.md)
+* [File](Commands/File/README.md)
     - [tar](Commands/File/tar.md)
     - [unzip](Commands/File/unzip.md)
     - [whereis](Commands/File/whereis.md)
@@ -37,10 +37,10 @@
     - [zipnote](Commands/File/zipnote.md)
     - [zipsplit](Commands/File/zipsplit.md)
 
-* [System](Commands/System/readme.md)
+* [System](Commands/System/README.md)
     - [sync](Commands/System/sync.md)
 
-* [User](Commands/User/readme.md)
+* [User](Commands/User/README.md)
     - [useradd](Commands/User/useradd.md)
     - [userdel](Commands/User/userdel.md)
     - [usermod](Commands/User/usermod.md)
