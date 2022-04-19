@@ -22,17 +22,28 @@
 
 * [What next?](next-steps/what-next.md)
 
-* [Introduction](README.md)
-* [Commands](Commands/README.md)
-    * [File](Commands/File/README.md)
-      - [who](Commands/File/who.md)
-      - [uuencode](Commands/File/uuencode.md)
-      - [uudecode](Commands/File/uudecode.md)
-      - [usermod](Commands/File/usermod.md)
-      - [userdel](Commands/File/userdel.md)
-      - [useradd](Commands/File/useradd.md)
-    * [Device](Commands/Device/README.md)
-      - [synclient](Commands/Device/synclient.md)
-      - [sync](Commands/Device/sync.md)
-      - [stty](Commands/Device/stty.md)
-* [Todo](Todo.md)
+## [Commands](Commands/README.md)
+
+* [Device](Commands/Device/readme.md)
+    - [stty](Commands/Device/stty.md)
+
+* [File](Commands/File/readme.md)
+    - [tar](Commands/File/tar.md)
+    - [unzip](Commands/File/unzip.md)
+    - [whereis](Commands/File/whereis.md)
+    - [which](Commands/File/which.md)
+    - [zip](Commands/File/zip.md)
+    - [zipcloak](Commands/File/zipcloak.md)
+    - [zipnote](Commands/File/zipnote.md)
+    - [zipsplit](Commands/File/zipsplit.md)
+
+* [System](Commands/System/readme.md)
+    - [sync](Commands/System/sync.md)
+
+* [User](Commands/User/readme.md)
+    - [tar](Commands/User/useradd.md)
+    - [unzip](Commands/User/userdel.md)
+    - [whereis](Commands/User/usermod.md)
+    - [which](Commands/User/who.md)
+
+### [Todo](Todo.md)
