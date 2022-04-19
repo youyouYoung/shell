@@ -22,28 +22,25 @@
 
 * [What next?](next-steps/what-next.md)
 
-## [Commands](Commands/README.md)
+## Commands
 
-* [Device](Commands/Device/README.md)
-    - [stty](Commands/Device/stty.md)
+* [Device](commands/device/README.md)
+  * [stty](Commands/Device/stty.md)
+* [File](commands/file/README.md)
+  * [tar](Commands/File/tar.md)
+  * [unzip](Commands/File/unzip.md)
+  * [whereis](Commands/File/whereis.md)
+  * [which](Commands/File/which.md)
+  * [zip](Commands/File/zip.md)
+  * [zipcloak](Commands/File/zipcloak.md)
+  * [zipnote](Commands/File/zipnote.md)
+  * [zipsplit](Commands/File/zipsplit.md)
+* [System](Commands/System/readme.md)
+  * [sync](Commands/System/sync.md)
+* [User](Commands/User/readme.md)
+  * [useradd](Commands/User/useradd.md)
+  * [userdel](Commands/User/userdel.md)
+  * [usermod](Commands/User/usermod.md)
+  * [who](Commands/User/who.md)
 
-* [File](Commands/File/README.md)
-    - [tar](Commands/File/tar.md)
-    - [unzip](Commands/File/unzip.md)
-    - [whereis](Commands/File/whereis.md)
-    - [which](Commands/File/which.md)
-    - [zip](Commands/File/zip.md)
-    - [zipcloak](Commands/File/zipcloak.md)
-    - [zipnote](Commands/File/zipnote.md)
-    - [zipsplit](Commands/File/zipsplit.md)
-
-* [System](Commands/System/README.md)
-    - [sync](Commands/System/sync.md)
-
-* [User](Commands/User/README.md)
-    - [useradd](Commands/User/useradd.md)
-    - [userdel](Commands/User/userdel.md)
-    - [usermod](Commands/User/usermod.md)
-    - [who](Commands/User/who.md)
-
-### [Todo](Todo.md)
+## Todo
