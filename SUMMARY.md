@@ -25,9 +25,9 @@
 
 ## Commands
 
-* [Device](commands/device/README.md)
+* [Device](Commands/Device/README.md)
   * [stty](Commands/Device/stty.md)
-* [File](commands/file/README.md)
+* [File](Commands/File/README.md)
   * [tar](Commands/File/tar.md)
   * [unzip](Commands/File/unzip.md)
   * [whereis](Commands/File/whereis.md)
@@ -43,5 +43,3 @@
   * [userdel](Commands/User/userdel.md)
   * [usermod](Commands/User/usermod.md)
   * [who](Commands/User/who.md)
-
-## Todo
