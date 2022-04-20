@@ -1,4 +1,0 @@
-- [ ] support multiple languages
-- [ ] optimizing the content of [readme](./README.md)
-- [ ] auto compile by gitbook
-- [ ] 将Commands划分为几个小章节, Commands改为part 1

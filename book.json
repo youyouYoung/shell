@@ -8,7 +8,8 @@
     "splitter",
     "popup",
     "expandable-chapters",
-    "ancre-navigation"
+    "ancre-navigation",
+    "-sharing"
   ],
   "pluginsConfig": {
     "github": {
